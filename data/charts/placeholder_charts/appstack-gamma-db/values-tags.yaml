@@ -1,0 +1,6 @@
+global:
+  environment_tag: gamma-db-tagged
+  data_center: '@{INPUT_ROOT_PATH}'
+app-gamma:
+  config:
+    dbName: '@{SFTP_HOST}'

@@ -1,0 +1,5 @@
+global:
+  environment_tag: alpha-tagged
+  cloud_provider: '@{DEFAULT_WORKSPACE}'
+frontend-nginx:
+  image_tag: '@{DEFAULT_WORKSPACE}'

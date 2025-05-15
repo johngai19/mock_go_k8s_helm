@@ -1,0 +1,10 @@
+app-gamma:
+  replicaCount: 1
+  config:
+    dbHost: '@{RDBMS_SERVER_URL}'
+    dbClient: '@{RDBMS_DB_CLIENT}'
+    dbName: '@{RDBMS_DATABASE_NAME}'
+global:
+  environment: development
+  umbrellaName: appstack-gamma-db
+  default_registry: '@{REGISTRY}'

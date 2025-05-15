@@ -1,0 +1,19 @@
+replicaCount: 1
+image:
+  repository: httpd
+  tag: '2.4'
+  pullPolicy: IfNotPresent
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+config:
+  apiBasePath: '@{API_BASE_PATH}'
+  sftpHost: '@{SFTP_HOST}'
+  elasticHost: '@{ELASTICSEARCH_HOST}'
+service:
+  port: 8080
+  type: ClusterIP
