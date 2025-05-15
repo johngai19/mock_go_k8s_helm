@@ -52,20 +52,31 @@ func Load(opts Options) (*LoadedConfig, error) {
 	lc.Main["another_key"] = "another_value"
 	lc.Main["var1"] = "value1"
 	lc.Main["var2"] = "${var1}_value2"
+
+	// database grouping
 	if opts.EnableDatabaseGrouping {
 		lc.DatabaseConfigs["mockdb"] = map[string]string{
 			"host": "localhost",
 			"port": "5432",
 		}
 	}
-	lc.Metadata["source_type"] = "mock_load"
+
+	// source_type: change if custom paths were provided
+	if len(opts.CustomFilePaths) > 0 {
+		lc.Metadata["source_type"] = "custom_paths"
+	} else {
+		lc.Metadata["source_type"] = "mock_load"
+	}
+
 	lc.Metadata["parsed_files"] = []string{"/fake/path/mock.conf"}
 	lc.Metadata["database_grouping_enabled"] = opts.EnableDatabaseGrouping
 	lc.Metadata["extraction_date"] = time.Now().UTC().Format(time.RFC3339)
+
+	// resolve mocked maps
 	lc.Main = resolveConfigMap(lc.rawMainConfig, lc.Main, "MAIN_RESOLVED_MOCK", "")
 	if opts.EnableDatabaseGrouping {
-		for dbType, rawDbConf := range lc.rawDatabaseConfigs {
-			lc.DatabaseConfigs[dbType] = resolveConfigMap(rawDbConf, lc.Main, "DB_"+strings.ToUpper(dbType)+"_RESOLVED_MOCK", "")
+		for dbType, rawDb := range lc.rawDatabaseConfigs {
+			lc.DatabaseConfigs[dbType] = resolveConfigMap(rawDb, lc.Main, "DB_"+strings.ToUpper(dbType)+"_RESOLVED_MOCK", "")
 		}
 	}
 	return lc, nil
@@ -81,7 +92,20 @@ func LoadWithDefaults(basePath string, env string, enableDBGrouping bool) (*Load
 		Environment:            env,
 		EnableDatabaseGrouping: enableDBGrouping,
 	}
-	return Load(opts)
+
+	// delegate to Load
+	lc, err := Load(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	// record which defaults we "discovered"
+	primary, secondary, _ := DiscoverDefaultPaths(basePath, env)
+	lc.Metadata["discovered_primary_config_path"] = primary
+	lc.Metadata["discovered_secondary_config_path"] = secondary
+
+	// note: we do NOT set source_environment_specified, so it remains nil
+	return lc, nil
 }
 
 // DiscoverDefaultPaths simulates DiscoverDefaultPaths.
